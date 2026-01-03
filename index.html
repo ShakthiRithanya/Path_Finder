@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path Finder - BFS vs DFS Algorithm Visualizer</title>
+    <meta name="description"
+        content="Interactive maze pathfinding visualizer comparing BFS and DFS algorithms with comprehensive performance analysis">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="background-gradient"></div>
+    <div class="noise-overlay"></div>
+
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="url(#logo-gradient)" stroke-width="2"
+                            stroke-linejoin="round" />
+                        <circle cx="16" cy="16" r="4" fill="url(#logo-gradient)" />
+                        <defs>
+                            <linearGradient id="logo-gradient" x1="4" y1="4" x2="28" y2="28">
+                                <stop offset="0%" stop-color="#6366f1" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>Path Finder</h1>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn active" data-section="visualizer">Visualizer</button>
+                    <button class="nav-btn" data-section="analysis">Analysis</button>
+                    <button class="nav-btn" data-section="about">About</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Visualizer Section -->
+            <section id="visualizer" class="section active">
+                <div class="section-header">
+                    <h2>Algorithm Visualizer</h2>
+                    <p>Watch BFS and DFS algorithms navigate through mazes in real-time</p>
+                </div>
+
+                <div class="controls-panel glass-card">
+                    <div class="control-group">
+                        <label for="maze-size">Maze Size</label>
+                        <div class="slider-container">
+                            <input type="range" id="maze-size" min="3" max="40" value="15" step="1">
+                            <span class="slider-value" id="maze-size-value">15x15</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="obstacle-density">Obstacle Density</label>
+                        <div class="slider-container">
+                            <input type="range" id="obstacle-density" min="0" max="40" value="20" step="5">
+                            <span class="slider-value" id="obstacle-density-value">20%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="animation-speed">Animation Speed</label>
+                        <div class="slider-container">
+                            <input type="range" id="animation-speed" min="1" max="100" value="50" step="1">
+                            <span class="slider-value" id="animation-speed-value">50ms</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="generate-maze">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path
+                                    d="M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                <path d="M17.5 5L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                            Generate Maze
+                        </button>
+                        <button class="btn btn-secondary" id="run-bfs">Run BFS</button>
+                        <button class="btn btn-secondary" id="run-dfs">Run DFS</button>
+                        <button class="btn btn-accent" id="run-both">Compare Both</button>
+                        <button class="btn btn-outline" id="reset">Reset</button>
+                    </div>
+                </div>
+
+                <div class="maze-container">
+                    <div class="maze-wrapper glass-card">
+                        <div class="maze-header">
+                            <h3>Maze Grid</h3>
+                            <div class="legend">
+                                <div class="legend-item">
+                                    <span class="legend-color start"></span>
+                                    <span>Start</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color end"></span>
+                                    <span>End</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color wall"></span>
+                                    <span>Wall</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color visited"></span>
+                                    <span>Visited</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color path"></span>
+                                    <span>Path</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="maze-grid" class="maze-grid"></div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass-card bfs-card">
+                        <div class="stat-header">
+                            <h3>BFS Statistics</h3>
+                            <div class="algorithm-badge bfs">Breadth-First Search</div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-item">
+                                <span class="stat-label">Execution Time</span>
+                                <span class="stat-value" id="bfs-time">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Nodes Visited</span>
+                                <span class="stat-value" id="bfs-visited">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Path Length</span>
+                                <span class="stat-value" id="bfs-path">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Memory Usage</span>
+                                <span class="stat-value" id="bfs-memory">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Status</span>
+                                <span class="stat-value status" id="bfs-status">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-card dfs-card">
+                        <div class="stat-header">
+                            <h3>DFS Statistics</h3>
+                            <div class="algorithm-badge dfs">Depth-First Search</div>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-item">
+                                <span class="stat-label">Execution Time</span>
+                                <span class="stat-value" id="dfs-time">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Nodes Visited</span>
+                                <span class="stat-value" id="dfs-visited">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Path Length</span>
+                                <span class="stat-value" id="dfs-path">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Memory Usage</span>
+                                <span class="stat-value" id="dfs-memory">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Status</span>
+                                <span class="stat-value status" id="dfs-status">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analysis Section -->
+            <section id="analysis" class="section">
+                <div class="section-header">
+                    <h2>Performance Analysis</h2>
+                    <p>Comprehensive comparison of algorithm performance metrics</p>
+                </div>
+
+                <div class="analysis-grid">
+                    <div class="analysis-card glass-card">
+                        <h3>Time Complexity Comparison</h3>
+                        <canvas id="time-chart"></canvas>
+                    </div>
+
+                    <div class="analysis-card glass-card">
+                        <h3>Space Complexity Comparison</h3>
+                        <canvas id="space-chart"></canvas>
+                    </div>
+
+                    <div class="analysis-card glass-card">
+                        <h3>Path Efficiency</h3>
+                        <canvas id="path-chart"></canvas>
+                    </div>
+
+                    <div class="analysis-card glass-card">
+                        <h3>Exploration Pattern</h3>
+                        <canvas id="exploration-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="comparison-table glass-card">
+                    <h3>Detailed Comparison Table</h3>
+                    <table id="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>BFS</th>
+                                <th>DFS</th>
+                                <th>Winner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Time Complexity</td>
+                                <td>O(V + E)</td>
+                                <td>O(V + E)</td>
+                                <td>Tie</td>
+                            </tr>
+                            <tr>
+                                <td>Space Complexity</td>
+                                <td>O(V)</td>
+                                <td>O(h)</td>
+                                <td><span class="winner dfs-winner">DFS</span></td>
+                            </tr>
+                            <tr>
+                                <td>Shortest Path</td>
+                                <td>Guaranteed</td>
+                                <td>Not Guaranteed</td>
+                                <td><span class="winner bfs-winner">BFS</span></td>
+                            </tr>
+                            <tr>
+                                <td>Completeness</td>
+                                <td>Complete</td>
+                                <td>Complete (with cycle detection)</td>
+                                <td>Tie</td>
+                            </tr>
+                            <tr>
+                                <td>Optimality</td>
+                                <td>Optimal</td>
+                                <td>Not Optimal</td>
+                                <td><span class="winner bfs-winner">BFS</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="insights-grid">
+                    <div class="insight-card glass-card">
+                        <div class="insight-icon bfs-bg">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
+                                    stroke-linejoin="round" />
+                                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"
+                                    stroke-linejoin="round" />
+                                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <h4>BFS Advantages</h4>
+                        <ul>
+                            <li>Guarantees shortest path in unweighted graphs</li>
+                            <li>Explores nodes level by level</li>
+                            <li>Better for finding nearby solutions</li>
+                            <li>Optimal for minimum spanning trees</li>
+                        </ul>
+                    </div>
+
+                    <div class="insight-card glass-card">
+                        <div class="insight-icon dfs-bg">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2V22M12 2L6 8M12 2L18 8" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <h4>DFS Advantages</h4>
+                        <ul>
+                            <li>Lower memory usage (O(h) vs O(w))</li>
+                            <li>Better for deep solution spaces</li>
+                            <li>Useful for topological sorting</li>
+                            <li>Efficient for detecting cycles</li>
+                        </ul>
+                    </div>
+
+                    <div class="insight-card glass-card">
+                        <div class="insight-icon accent-bg">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path
+                                    d="M21 12V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <h4>Best Use Cases</h4>
+                        <ul>
+                            <li><strong>BFS:</strong> GPS navigation, social networks, web crawlers</li>
+                            <li><strong>DFS:</strong> Maze solving, puzzle games, file systems</li>
+                            <li>Choose based on problem constraints</li>
+                            <li>Consider memory vs optimality tradeoffs</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="about" class="section">
+                <div class="section-header">
+                    <h2>About Path Finder</h2>
+                    <p>Understanding graph traversal algorithms through interactive visualization</p>
+                </div>
+
+                <div class="about-content glass-card">
+                    <div class="about-section">
+                        <h3>What is BFS?</h3>
+                        <p><strong>Breadth-First Search (BFS)</strong> is a graph traversal algorithm that explores
+                            vertices in layers. It starts at the source node and explores all neighbors at the present
+                            depth before moving to nodes at the next depth level. BFS uses a queue data structure and
+                            guarantees the shortest path in unweighted graphs.</p>
+                        <div class="code-block">
+                            <pre><code>function BFS(start, end):
+    queue = [start]
+    visited = {start}
+    
+    while queue is not empty:
+        current = queue.dequeue()
+        
+        if current == end:
+            return path
+        
+        for neighbor in current.neighbors:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.enqueue(neighbor)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="about-section">
+                        <h3>What is DFS?</h3>
+                        <p><strong>Depth-First Search (DFS)</strong> is a graph traversal algorithm that explores as far
+                            as possible along each branch before backtracking. It uses a stack data structure (or
+                            recursion) and is memory-efficient for deep graphs. DFS does not guarantee the shortest path
+                            but can be faster in certain scenarios.</p>
+                        <div class="code-block">
+                            <pre><code>function DFS(start, end):
+    stack = [start]
+    visited = {start}
+    
+    while stack is not empty:
+        current = stack.pop()
+        
+        if current == end:
+            return path
+        
+        for neighbor in current.neighbors:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                stack.push(neighbor)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="about-section">
+                        <h3>Key Differences</h3>
+                        <div class="differences-grid">
+                            <div class="difference-item">
+                                <h4>Data Structure</h4>
+                                <p><strong>BFS:</strong> Queue (FIFO)<br><strong>DFS:</strong> Stack (LIFO)</p>
+                            </div>
+                            <div class="difference-item">
+                                <h4>Exploration</h4>
+                                <p><strong>BFS:</strong> Level by level<br><strong>DFS:</strong> Branch by branch</p>
+                            </div>
+                            <div class="difference-item">
+                                <h4>Memory</h4>
+                                <p><strong>BFS:</strong> O(width)<br><strong>DFS:</strong> O(height)</p>
+                            </div>
+                            <div class="difference-item">
+                                <h4>Path Quality</h4>
+                                <p><strong>BFS:</strong> Shortest path<br><strong>DFS:</strong> Any path</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Path Finder. Built with passion for algorithm visualization.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

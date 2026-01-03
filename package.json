@@ -1,0 +1,12 @@
+{
+  "name": "path-finder",
+  "version": "1.0.0",
+  "description": "Interactive maze pathfinding visualizer comparing BFS and DFS algorithms",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p $PORT"
+  },
+  "keywords": ["pathfinding", "bfs", "dfs", "algorithm", "visualizer"],
+  "author": "",
+  "license": "MIT"
+}
